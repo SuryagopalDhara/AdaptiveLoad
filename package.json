@@ -1,0 +1,36 @@
+{
+  "name": "adaptiveloader",
+  "version": "1.0.0",
+  "description": "A smart, self-learning loading indicator library. Shows nothing for fast loads, a spinner for medium waits, and contextual messages for slow ones.",
+  "main": "core/adaptiveloader.js",
+  "module": "core/adaptiveloader.js",
+  "unpkg": "core/adaptiveloader.js",
+  "jsdelivr": "core/adaptiveloader.js",
+  "files": [
+    "core/adaptiveloader.js",
+    "core/LICENSE"
+  ],
+  "keywords": [
+    "loading",
+    "loader",
+    "spinner",
+    "preloader",
+    "ux",
+    "performance",
+    "adaptive",
+    "network-aware"
+  ],
+  "author": "AdaptiveLoader Contributors",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adaptiveloader/adaptiveloader.git"
+  },
+  "bugs": {
+    "url": "https://github.com/adaptiveloader/adaptiveloader/issues"
+  },
+  "homepage": "https://github.com/adaptiveloader/adaptiveloader#readme",
+  "engines": {
+    "node": ">=12"
+  }
+}
