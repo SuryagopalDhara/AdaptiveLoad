@@ -1,11 +1,10 @@
 /*!
- * AdaptiveLoad.js v1.0.0
- * A smart, self-learning loading indicator library.
- * Free & open source — MIT License
- * By Suryagopal Dhara — https://suryacreates.com
+ * AdaptiveLoad.js v2.0.0
+ * A smart, self-learning loading indicator — for page loads, buttons,
+ * forms, and any async action. Free & open source — MIT License.
  * https://github.com/SuryagopalDhara/AdaptiveLoad
  *
- * No dependencies. Works standalone in any HTML/JS site,
+ * No required dependencies. Works standalone in any HTML/JS site,
  * or via the AdaptiveLoad WordPress plugin.
  */
 
@@ -17,35 +16,51 @@
   'use strict';
 
   var DEFAULTS = {
-    // Time thresholds in milliseconds
-    thresholds: {
-      spinner: 1000,     // show spinner after this long
-      staticText: 3000,  // switch to static text after this long
-      dynamicText: 5000  // switch to rotating dynamic text after this long
-    },
-    // Messages shown at the "static text" stage
+    thresholds: { spinner: 1000, staticText: 3000, dynamicText: 5000 },
     staticMessages: ['Loading...'],
-    // Messages rotated through at the "dynamic text" stage
     dynamicMessages: ['Still working on it...', 'Almost there...', 'Just a moment more...'],
     dynamicRotateInterval: 2500,
-    // How much to pull thresholds forward (in ms) per "slow" tier detected.
-    // e.g. a value of 500 means slow-network users see spinner/text ~0.5s sooner each stage.
     networkAdjustMs: 500,
-    // Respect prefers-reduced-motion
     respectReducedMotion: true,
-    // Container / mount target. Defaults to a fixed overlay appended to body.
-    target: null,
-    // Storage key for session-based learning
+    target: null,              // page-level overlay target (defaults to <body>)
+    element: null,              // NEW: scope the loader to a specific element instead of full page
     storageKey: 'adaptiveload_speed_tier',
-    // Called with (state) whenever the UI state changes: 'idle' | 'spinner' | 'static' | 'dynamic'
     onStateChange: null,
-    // Custom render functions (optional overrides)
-    renderSpinner: null,
+    // Visual config — NEW: pick a built-in type or supply a fully custom renderer
+    visual: {
+      type: 'spinner',          // 'spinner' | 'image' | 'gif' | 'custom'
+      src: null,                // image/gif URL, used when type is 'image' or 'gif'
+      customHtml: null,         // raw HTML string, used when type is 'custom'
+      size: 36                  // px, applies to spinner/image/gif
+    },
+    renderSpinner: null,        // advanced override, takes precedence over `visual`
     renderStaticText: null,
     renderDynamicText: null,
-    // Enable local learning (records load times per-URL into localStorage)
     enableLearning: true,
-    learningStorageKey: 'adaptiveload_page_stats'
+    learningStorageKey: 'adaptiveload_page_stats',
+    // NEW: action type informs both the rule-based fallback messages and
+    // whatever context gets sent to an AI provider. e.g. 'submit', 'delete',
+    // 'upload', 'payment', 'search', 'save', 'generic'.
+    actionType: 'generic',
+    // NEW: optional async function(context) -> Promise<string[]>
+    // Receives { actionType, pageUrl, elapsedMs, elementType }.
+    // Should call YOUR OWN backend — never put API keys in frontend JS.
+    // If omitted or it fails/times out, falls back to the built-in message library.
+    aiMessageProvider: null,
+    aiTimeoutMs: 2500
+  };
+
+  // Built-in rule-based fallback messages, keyed by action type.
+  // Used when no AI provider is configured (or it fails) — still feels
+  // "smart" and contextual without needing any external API.
+  var MESSAGE_LIBRARY = {
+    submit: ['Submitting your info...', 'Almost done...', 'Just finishing up...'],
+    delete: ['Removing that for you...', 'Almost there...'],
+    upload: ['Uploading your file...', 'Almost done uploading...', 'Just a bit more...'],
+    payment: ['Processing your payment securely...', 'Confirming with your bank...', 'Almost done, hang tight...'],
+    search: ['Searching...', 'Finding the best results...', 'Almost there...'],
+    save: ['Saving your changes...', 'Almost done...'],
+    generic: ['Still working on it...', 'Almost there...', 'Just a moment more...']
   };
 
   function now() {
@@ -68,56 +83,40 @@
   // ---- Network speed detection -------------------------------------------
 
   function detectNetworkTier() {
-    // Primary: Network Information API (Chrome/Edge/Android — not Safari/Firefox)
     var conn = (typeof navigator !== 'undefined') &&
       (navigator.connection || navigator.mozConnection || navigator.webkitConnection);
-
     if (conn && conn.effectiveType) {
       var type = conn.effectiveType;
       if (type === 'slow-2g' || type === '2g') return 'slow';
       if (type === '3g') return 'medium';
-      return 'fast'; // 4g and above
+      return 'fast';
     }
-    return null; // unsupported — fall back to session learning
+    return null;
   }
 
   function getSessionTier(storageKey) {
-    try {
-      return sessionStorage.getItem(storageKey);
-    } catch (e) {
-      return null;
-    }
+    try { return sessionStorage.getItem(storageKey); } catch (e) { return null; }
   }
 
   function setSessionTier(storageKey, tier) {
-    try {
-      sessionStorage.setItem(storageKey, tier);
-    } catch (e) { /* storage unavailable, ignore */ }
+    try { sessionStorage.setItem(storageKey, tier); } catch (e) { /* ignore */ }
   }
 
-  // Classify a measured load time (ms) into a tier, used as a fallback
-  // signal when the Network Information API isn't available.
   function classifyByDuration(ms) {
     if (ms < 800) return 'fast';
     if (ms < 2500) return 'medium';
     return 'slow';
   }
 
-  // ---- Local learning (per-URL historical load times) --------------------
+  // ---- Local learning ------------------------------------------------------
 
   function readStats(key) {
-    try {
-      var raw = localStorage.getItem(key);
-      return raw ? JSON.parse(raw) : {};
-    } catch (e) {
-      return {};
-    }
+    try { var raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : {}; }
+    catch (e) { return {}; }
   }
 
   function writeStats(key, stats) {
-    try {
-      localStorage.setItem(key, JSON.stringify(stats));
-    } catch (e) { /* ignore quota / privacy-mode errors */ }
+    try { localStorage.setItem(key, JSON.stringify(stats)); } catch (e) { /* ignore */ }
   }
 
   function recordLoad(key, url, durationMs) {
@@ -133,25 +132,27 @@
   function getPageTier(key, url) {
     var stats = readStats(key);
     var entry = stats[url];
-    if (!entry || entry.count < 2) return null; // not enough data yet
+    if (!entry || entry.count < 2) return null;
     return classifyByDuration(entry.avg);
   }
 
-  // ---- Default DOM rendering ----------------------------------------------
+  // ---- Default DOM rendering ------------------------------------------------
 
   function injectStylesOnce() {
     if (document.getElementById('adaptiveload-styles')) return;
     var css = [
       '.adaptiveload-overlay{position:fixed;inset:0;display:flex;align-items:center;',
-      'justify-content:center;flex-direction:column;gap:12px;background:rgba(255,255,255,0.0);',
-      'pointer-events:none;z-index:999999;}',
-      '.adaptiveload-spinner{width:36px;height:36px;border-radius:50%;',
-      'border:3px solid rgba(0,0,0,0.15);border-top-color:rgba(0,0,0,0.65);',
-      'animation:adaptiveload-spin 0.8s linear infinite;}',
+      'justify-content:center;flex-direction:column;gap:12px;pointer-events:none;z-index:999999;}',
+      '.adaptiveload-inline{position:absolute;inset:0;display:flex;align-items:center;',
+      'justify-content:center;flex-direction:column;gap:8px;pointer-events:none;z-index:999;',
+      'background:rgba(255,255,255,0.6);border-radius:inherit;}',
+      '.adaptiveload-spinner{border-radius:50%;border:3px solid rgba(0,0,0,0.15);',
+      'border-top-color:rgba(0,0,0,0.65);animation:adaptiveload-spin 0.8s linear infinite;}',
       '@keyframes adaptiveload-spin{to{transform:rotate(360deg);}}',
       '.adaptiveload-text{font:500 14px/1.4 system-ui,-apple-system,sans-serif;',
       'color:rgba(0,0,0,0.75);background:rgba(255,255,255,0.9);padding:6px 14px;',
       'border-radius:999px;box-shadow:0 1px 4px rgba(0,0,0,0.1);}',
+      '.adaptiveload-visual-img{display:block;object-fit:contain;}',
       '@media (prefers-reduced-motion: reduce){.adaptiveload-spinner{animation-duration:2s;}}'
     ].join('');
     var style = document.createElement('style');
@@ -160,13 +161,72 @@
     document.head.appendChild(style);
   }
 
-  function createOverlay(target) {
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function buildVisualHtml(visual) {
+    var size = visual.size || 36;
+    if (visual.type === 'image' || visual.type === 'gif') {
+      if (!visual.src) return '<div class="adaptiveload-spinner" style="width:' + size + 'px;height:' + size + 'px;"></div>';
+      return '<img class="adaptiveload-visual-img" src="' + escapeHtml(visual.src) +
+        '" alt="Loading" style="width:' + size + 'px;height:' + size + 'px;" />';
+    }
+    if (visual.type === 'custom' && visual.customHtml) {
+      return visual.customHtml;
+    }
+    return '<div class="adaptiveload-spinner" style="width:' + size + 'px;height:' + size + 'px;"></div>';
+  }
+
+  function createOverlay(target, scoped) {
     var el = document.createElement('div');
-    el.className = 'adaptiveload-overlay';
+    el.className = scoped ? 'adaptiveload-inline' : 'adaptiveload-overlay';
     el.setAttribute('role', 'status');
     el.setAttribute('aria-live', 'polite');
-    (target || document.body).appendChild(el);
+
+    if (scoped) {
+      var computedPosition = getComputedStyle(target).position;
+      if (computedPosition === 'static') {
+        target.style.position = 'relative';
+      }
+      target.appendChild(el);
+    } else {
+      (target || document.body).appendChild(el);
+    }
     return el;
+  }
+
+  // ---- AI message resolution -------------------------------------------------
+
+  function withTimeout(promise, ms) {
+    return new Promise(function (resolve, reject) {
+      var timer = setTimeout(function () { reject(new Error('ai_timeout')); }, ms);
+      promise.then(function (val) { clearTimeout(timer); resolve(val); },
+        function (err) { clearTimeout(timer); reject(err); });
+    });
+  }
+
+  function resolveDynamicMessages(opts, context) {
+    if (typeof opts.aiMessageProvider === 'function') {
+      return withTimeout(Promise.resolve(opts.aiMessageProvider(context)), opts.aiTimeoutMs)
+        .then(function (messages) {
+          if (Array.isArray(messages) && messages.length > 0) return messages;
+          return fallbackMessages(opts);
+        })
+        .catch(function () {
+          return fallbackMessages(opts); // AI failed or timed out — degrade gracefully
+        });
+    }
+    return Promise.resolve(fallbackMessages(opts));
+  }
+
+  function fallbackMessages(opts) {
+    if (opts.dynamicMessages && opts.dynamicMessages !== DEFAULTS.dynamicMessages) {
+      return opts.dynamicMessages;
+    }
+    return MESSAGE_LIBRARY[opts.actionType] || MESSAGE_LIBRARY.generic;
   }
 
   // ---- Main controller -----------------------------------------------------
@@ -179,6 +239,7 @@
     var overlay = null;
     var state = 'idle';
     var pageUrl = (typeof location !== 'undefined') ? location.pathname : 'unknown';
+    var scoped = !!opts.element;
 
     function setState(next) {
       state = next;
@@ -195,7 +256,7 @@
 
     function ensureOverlay() {
       injectStylesOnce();
-      if (!overlay) overlay = createOverlay(opts.target);
+      if (!overlay) overlay = createOverlay(scoped ? opts.element : opts.target, scoped);
       return overlay;
     }
 
@@ -204,7 +265,7 @@
       if (opts.renderSpinner) {
         opts.renderSpinner(el);
       } else {
-        el.innerHTML = '<div class="adaptiveload-spinner"></div>';
+        el.innerHTML = buildVisualHtml(opts.visual);
       }
       setState('spinner');
     }
@@ -215,44 +276,48 @@
       if (opts.renderStaticText) {
         opts.renderStaticText(el, msg);
       } else {
-        el.innerHTML = '<div class="adaptiveload-spinner"></div><div class="adaptiveload-text">' +
-          escapeHtml(msg) + '</div>';
+        el.innerHTML = buildVisualHtml(opts.visual) +
+          '<div class="adaptiveload-text">' + escapeHtml(msg) + '</div>';
       }
       setState('static');
     }
 
     function showDynamicText() {
       var el = ensureOverlay();
-      var messages = opts.dynamicMessages;
       var i = 0;
+      var messages = fallbackMessages(opts);
 
-      function render() {
-        var msg = messages[i % messages.length];
+      function render(list) {
+        var msg = list[i % list.length];
         if (opts.renderDynamicText) {
           opts.renderDynamicText(el, msg);
         } else {
-          el.innerHTML = '<div class="adaptiveload-spinner"></div><div class="adaptiveload-text">' +
-            escapeHtml(msg) + '</div>';
+          el.innerHTML = buildVisualHtml(opts.visual) +
+            '<div class="adaptiveload-text">' + escapeHtml(msg) + '</div>';
         }
         i++;
       }
 
-      render();
-      rotateTimer = setInterval(render, opts.dynamicRotateInterval);
+      render(messages);
+      rotateTimer = setInterval(function () { render(messages); }, opts.dynamicRotateInterval);
       setState('dynamic');
-    }
 
-    function escapeHtml(str) {
-      var div = document.createElement('div');
-      div.textContent = str;
-      return div.innerHTML;
+      resolveDynamicMessages(opts, {
+        actionType: opts.actionType,
+        pageUrl: pageUrl,
+        elapsedMs: startTime !== null ? Math.round(now() - startTime) : null,
+        elementType: scoped ? (opts.element.tagName || 'element').toLowerCase() : 'page'
+      }).then(function (resolvedMessages) {
+        if (state === 'dynamic' && resolvedMessages && resolvedMessages.length) {
+          messages = resolvedMessages;
+          i = 0;
+        }
+      });
     }
 
     function computeAdjustedThresholds() {
       var t = opts.thresholds;
       var adjusted = { spinner: t.spinner, staticText: t.staticText, dynamicText: t.dynamicText };
-
-      // Signal priority: live Network Info API > per-page history > session-learned tier
       var tier = detectNetworkTier();
       if (!tier) tier = getPageTier(opts.learningStorageKey, pageUrl);
       if (!tier) tier = getSessionTier(opts.storageKey);
@@ -275,7 +340,7 @@
       clearTimers();
       setState('idle');
 
-      var t = computeAdjustedThresholds();
+      var t = scoped ? opts.thresholds : computeAdjustedThresholds();
 
       timers.push(setTimeout(showSpinner, t.spinner));
       timers.push(setTimeout(showStaticText, t.staticText));
@@ -285,19 +350,23 @@
     function stop() {
       clearTimers();
       if (overlay) {
-        overlay.innerHTML = '';
+        if (scoped && overlay.parentNode) {
+          overlay.parentNode.removeChild(overlay);
+        } else {
+          overlay.innerHTML = '';
+        }
       }
+      overlay = scoped ? null : overlay;
       setState('idle');
 
       if (startTime !== null) {
         var duration = now() - startTime;
         startTime = null;
 
-        // Feed back into local learning + session tier for next navigation
-        if (opts.enableLearning) {
+        if (!scoped && opts.enableLearning) {
           recordLoad(opts.learningStorageKey, pageUrl, duration);
         }
-        setSessionTier(opts.storageKey, classifyByDuration(duration));
+        if (!scoped) setSessionTier(opts.storageKey, classifyByDuration(duration));
 
         return duration;
       }
@@ -315,11 +384,61 @@
       stop: stop,
       destroy: destroy,
       getState: function () { return state; },
-      // Exposed for advanced/custom integrations (e.g. WP admin dashboard charts)
       _internal: { detectNetworkTier: detectNetworkTier, getPageTier: getPageTier, readStats: readStats }
     };
   }
 
-  AdaptiveLoadInstance.VERSION = '1.0.0';
+  // ---- Auto-init: zero-JS implementation via data attributes ----------------
+  //
+  // Usage:
+  //   <form data-adaptiveload="form" data-adaptiveload-action="submit">
+  //   <button data-adaptiveload="button" data-adaptiveload-action="delete">
+  //
+  // For real page navigations/native form submits, the loader disappears
+  // naturally with the page. For AJAX/SPA use, call el.adaptiveLoadStop()
+  // from your own async handler once the work finishes.
+
+  function autoInit(root) {
+    root = root || document;
+    var elements = root.querySelectorAll('[data-adaptiveload]');
+
+    elements.forEach(function (el) {
+      if (el._adaptiveLoadBound) return;
+      el._adaptiveLoadBound = true;
+
+      var kind = el.getAttribute('data-adaptiveload');
+      var actionType = el.getAttribute('data-adaptiveload-action') || 'generic';
+      var customMessage = el.getAttribute('data-adaptiveload-message');
+      var imageSrc = el.getAttribute('data-adaptiveload-image');
+
+      var instance = AdaptiveLoadInstance({
+        element: el,
+        actionType: actionType,
+        staticMessages: customMessage ? [customMessage] : DEFAULTS.staticMessages,
+        visual: imageSrc ? { type: 'image', src: imageSrc, size: 28 } : DEFAULTS.visual
+      });
+
+      el.adaptiveLoadInstance = instance;
+      el.adaptiveLoadStop = function () { return instance.stop(); };
+
+      if (kind === 'form') {
+        el.addEventListener('submit', function () { instance.start(); });
+      } else {
+        el.addEventListener('click', function () { instance.start(); });
+      }
+    });
+  }
+
+  if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function () { autoInit(); });
+    } else {
+      autoInit();
+    }
+  }
+
+  AdaptiveLoadInstance.VERSION = '2.0.0';
+  AdaptiveLoadInstance.autoInit = autoInit;
+  AdaptiveLoadInstance.MESSAGE_LIBRARY = MESSAGE_LIBRARY;
   return AdaptiveLoadInstance;
 });

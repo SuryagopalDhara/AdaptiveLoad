@@ -3,7 +3,7 @@
  * Plugin Name: AdaptiveLoad
  * Plugin URI:  https://suryacreates.com/adaptiveload/
  * Description: A smart, self-learning loading indicator. Shows nothing for fast loads, a spinner for medium waits, and contextual messages for slow ones — automatically adjusted per page and per visitor's connection speed.
- * Version:     1.0.0
+ * Version:     2.0.0
  * Author:      Suryagopal Dhara
  * Author URI:  https://suryacreates.com
  * License:     GPL v2 or later
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // No direct access.
 }
 
-define( 'ADAPTIVELOAD_VERSION', '1.0.0' );
+define( 'ADAPTIVELOAD_VERSION', '2.0.0' );
 define( 'ADAPTIVELOAD_PATH', plugin_dir_path( __FILE__ ) );
 define( 'ADAPTIVELOAD_URL', plugin_dir_url( __FILE__ ) );
 

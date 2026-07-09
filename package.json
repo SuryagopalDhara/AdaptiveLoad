@@ -1,7 +1,7 @@
 {
   "name": "adaptiveload",
-  "version": "1.0.0",
-  "description": "A smart, self-learning loading indicator library. Shows nothing for fast loads, a spinner for medium waits, and contextual messages for slow ones.",
+  "version": "2.0.0",
+  "description": "A smart, self-learning loading indicator for page loads, buttons, forms, and any async action. Optional AI-generated contextual messages. Zero-JS implementation via data attributes.",
   "main": "core/adaptiveload.js",
   "module": "core/adaptiveload.js",
   "unpkg": "core/adaptiveload.js",

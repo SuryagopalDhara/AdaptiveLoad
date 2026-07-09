@@ -124,6 +124,145 @@ async function fetchData(url) {
 
 See inline comments in `core/adaptiveload.js` for the full options list (custom render functions, learning storage keys, reduced-motion handling, etc).
 
+## Zero-JS implementation (v2.0)
+
+For buttons and forms, you often don't need to write any JavaScript at all. Just add data attributes:
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/adaptiveload@2/core/adaptiveload.js"></script>
+
+<form data-adaptiveload="form" data-adaptiveload-action="submit">
+  <input type="email" name="email" required>
+  <button type="submit">Subscribe</button>
+</form>
+
+<button data-adaptiveload="button" data-adaptiveload-action="delete" data-adaptiveload-message="Removing item...">
+  Delete
+</button>
+```
+
+AdaptiveLoad automatically scans the page on load, attaches itself to any element with `data-adaptiveload`, and shows a loader scoped to that element (not the whole page) when it's clicked or submitted.
+
+**Attributes:**
+| Attribute | Values | Purpose |
+|---|---|---|
+| `data-adaptiveload` | `"button"` or `"form"` | Enables auto-binding |
+| `data-adaptiveload-action` | `submit`, `delete`, `upload`, `payment`, `search`, `save`, `generic` | Picks contextual fallback messages |
+| `data-adaptiveload-message` | any string | Overrides the static-stage message |
+| `data-adaptiveload-image` | URL | Use a custom image/GIF instead of the default spinner |
+
+For real page navigations or native form submits, the loader disappears naturally with the page. For AJAX/SPA interactions, stop it manually once your async work finishes:
+
+```js
+document.querySelector('#my-button').adaptiveLoadStop();
+```
+
+If you inject new buttons/forms dynamically (e.g. after a fetch), re-scan the page:
+
+```js
+AdaptiveLoad.autoInit(); // re-scans the whole document
+// or scope it: AdaptiveLoad.autoInit(someContainerElement);
+```
+
+## Element-level loaders (buttons, forms, any container)
+
+Beyond the zero-JS approach, you can attach a loader to any specific element manually — useful when you need full control:
+
+```js
+const button = document.querySelector('#save-button');
+
+const loader = AdaptiveLoad({
+  element: button,          // scopes the loader to this element instead of the full page
+  actionType: 'save',       // picks contextual fallback messages
+  thresholds: { spinner: 300, staticText: 1200, dynamicText: 3000 } // buttons should feel snappier than page loads
+});
+
+async function handleSave() {
+  loader.start();
+  try {
+    await fetch('/api/save', { method: 'POST' /* ... */ });
+  } finally {
+    loader.stop();
+  }
+}
+
+button.addEventListener('click', handleSave);
+```
+
+## Custom loading visuals
+
+Swap the default spinner for an image, GIF, or fully custom HTML — one config option:
+
+```js
+// Image or GIF
+const loader = AdaptiveLoad({
+  visual: { type: 'image', src: '/assets/my-loader.gif', size: 48 }
+});
+
+// Fully custom HTML (e.g. your own CSS animation, SVG, Lottie player, etc.)
+const loader = AdaptiveLoad({
+  visual: {
+    type: 'custom',
+    customHtml: '<div class="my-custom-spinner"></div>'
+  }
+});
+```
+
+## Optional AI-generated contextual messages
+
+By default, AdaptiveLoad uses a built-in library of contextual messages based on `actionType` (submit, delete, upload, payment, search, save) — no setup required. If you want genuinely dynamic, AI-generated messages tailored to the specific page and task, provide an `aiMessageProvider` function.
+
+**Important: never call an AI API directly from frontend JS — that exposes your API key.** Instead, point `aiMessageProvider` at your own backend endpoint, which then calls the AI provider server-side.
+
+```js
+const loader = AdaptiveLoad({
+  actionType: 'payment',
+  aiMessageProvider: async function (context) {
+    // context = { actionType, pageUrl, elapsedMs, elementType }
+    const res = await fetch('/api/adaptiveload/ai-messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(context)
+    });
+    const data = await res.json();
+    return data.messages; // e.g. ['Almost done — verifying your card...', 'Just confirming with your bank...']
+  },
+  aiTimeoutMs: 2500 // falls back to the built-in message library if this is exceeded
+});
+```
+
+Example backend endpoint (Node/Express) that calls an AI provider safely:
+
+```js
+app.post('/api/adaptiveload/ai-messages', async (req, res) => {
+  const { actionType, pageUrl, elapsedMs } = req.body;
+
+  const aiResponse = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': process.env.ANTHROPIC_API_KEY, // kept server-side, never sent to the browser
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 200,
+      messages: [{
+        role: 'user',
+        content: `A user is waiting on a "${actionType}" action on the page "${pageUrl}", ` +
+          `already waited ${elapsedMs}ms. Write 3 short, reassuring loading messages ` +
+          `(under 8 words each) that reduce perceived wait time. Return ONLY a JSON array of strings.`
+      }]
+    })
+  });
+
+  const data = await aiResponse.json();
+  const messages = JSON.parse(data.content[0].text);
+  res.json({ messages });
+});
+```
+
+If `aiMessageProvider` is omitted, fails, or times out, AdaptiveLoad silently falls back to the built-in message library — the AI layer is entirely optional and never blocks the loader from working.
+
 ## Using the WordPress plugin
 
 1. Copy `wordpress-plugin/adaptiveload` into your site's `wp-content/plugins/` folder.
@@ -144,4 +283,12 @@ Only anonymized data is ever stored: page URL, load duration, device type (mobil
 
 ## Contributing
 
-Issues and PRs welcome at [github.com/SuryagopalDhara/AdaptiveLoad](https://github.com/SuryagopalDhara/AdaptiveLoad). This is an early v1.0.0 — the roadmap includes per-page-type contextual messaging (checkout vs. search vs. upload), a visual chart on the admin dashboard, and Gutenberg block support.
+Issues and PRs welcome at [github.com/SuryagopalDhara/AdaptiveLoad](https://github.com/SuryagopalDhara/AdaptiveLoad).
+
+## Changelog
+
+**v2.0.0** — Element-level loaders (buttons, forms, any container), zero-JS auto-init via `data-adaptiveload` attributes, custom visuals (image/GIF/custom HTML), optional AI-generated contextual messages via `aiMessageProvider`.
+
+**v1.0.0** — Initial release: adaptive time-based page-load states, network-aware threshold adjustment, site-wide learning (WordPress plugin).
+
+Roadmap: Gutenberg block support, visual chart on the WP admin dashboard, a built-in (optional) AI proxy endpoint in the WordPress plugin so PHP devs don't need to write their own backend route.
