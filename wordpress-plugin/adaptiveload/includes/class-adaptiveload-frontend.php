@@ -25,6 +25,11 @@ class AdaptiveLoad_Frontend {
 			return;
 		}
 
+		// Tell the core library to hold off on scanning the DOM for
+		// data-adaptiveload elements until init.js has configured
+		// site-wide defaults (like the AI message provider, if enabled).
+		wp_add_inline_script( 'adaptiveload', 'window.AdaptiveLoadNoAutoInit = true;', 'before' );
+
 		wp_enqueue_script(
 			'adaptiveload',
 			ADAPTIVELOAD_URL . 'assets/js/adaptiveload.js',
@@ -52,6 +57,7 @@ class AdaptiveLoad_Frontend {
 				'dynamicMessages' => $settings['dynamic_messages'],
 				'networkAdjustMs' => (int) $settings['network_adjust_ms'],
 				'enableLearning'  => true,
+				'aiEnabled'       => ! empty( $settings['ai_enabled'] ) && ! empty( $settings['ai_api_key'] ),
 			)
 		);
 	}
@@ -106,6 +112,8 @@ class AdaptiveLoad_Frontend {
 			'static_messages'   => array( 'Loading...' ),
 			'dynamic_messages'  => array( 'Still working on it...', 'Almost there...', 'Just a moment more...' ),
 			'network_adjust_ms' => 500,
+			'ai_enabled'        => false,
+			'ai_api_key'        => '',
 		);
 
 		$saved = get_option( 'adaptiveload_settings', array() );

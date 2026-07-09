@@ -69,6 +69,13 @@ class AdaptiveLoad_Admin {
 
 		$clean['network_adjust_ms'] = max( 0, absint( $input['network_adjust_ms'] ?? 500 ) );
 
+		$clean['ai_enabled'] = ! empty( $input['ai_enabled'] );
+		// Only overwrite the stored key if a new one was actually typed —
+		// this avoids blanking it out when the field is re-rendered masked.
+		$clean['ai_api_key'] = isset( $input['ai_api_key'] ) && '' !== trim( $input['ai_api_key'] )
+			? sanitize_text_field( trim( $input['ai_api_key'] ) )
+			: ( get_option( 'adaptiveload_settings' )['ai_api_key'] ?? '' );
+
 		return $clean;
 	}
 

@@ -430,15 +430,26 @@
   }
 
   if (typeof document !== 'undefined') {
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', function () { autoInit(); });
-    } else {
-      autoInit();
+    var skipAutoInit = (typeof global !== 'undefined') && global.AdaptiveLoadNoAutoInit === true;
+    if (!skipAutoInit) {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function () { autoInit(); });
+      } else {
+        autoInit();
+      }
     }
+  }
+
+  // Lets a host environment (like the WordPress plugin) merge site-wide
+  // defaults — e.g. an aiMessageProvider wired to a REST proxy — into
+  // every future AdaptiveLoadInstance, including ones created by autoInit.
+  function configureDefaults(overrides) {
+    deepMerge(DEFAULTS, overrides || {});
   }
 
   AdaptiveLoadInstance.VERSION = '2.0.0';
   AdaptiveLoadInstance.autoInit = autoInit;
+  AdaptiveLoadInstance.configureDefaults = configureDefaults;
   AdaptiveLoadInstance.MESSAGE_LIBRARY = MESSAGE_LIBRARY;
   return AdaptiveLoadInstance;
 });

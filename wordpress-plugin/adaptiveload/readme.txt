@@ -4,7 +4,7 @@ Tags: loading, spinner, preloader, performance, ux
 Requires at least: 5.6
 Tested up to: 6.6
 Requires PHP: 7.2
-Stable tag: 1.0.0
+Stable tag: 2.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Author: Suryagopal Dhara
@@ -62,6 +62,13 @@ Yes. The core `adaptiveload.js` library has zero dependencies and works in any H
 Contextual per-page-type messaging is on the roadmap. Currently you can set one shared static message and a pool of rotating dynamic messages sitewide.
 
 == Changelog ==
+
+= 2.0.0 =
+* Element-level loaders: add smart loading indicators to any button or form, not just full page loads.
+* Zero-JS implementation: use `data-adaptiveload="button"` or `="form"` attributes directly in your HTML — no code required.
+* Optional AI-generated contextual messages, powered by your own Anthropic API key. Configured under Settings → AdaptiveLoad. Your key stays server-side and is never exposed to visitors' browsers.
+* Custom loading visuals: use your own image or GIF via `data-adaptiveload-image`.
+* Falls back gracefully to the built-in message library if AI is disabled, fails, or times out.
 
 = 1.0.0 =
 * Initial release: adaptive time-based states, network-aware adjustment, site-wide learning dashboard, REST API, admin settings page.

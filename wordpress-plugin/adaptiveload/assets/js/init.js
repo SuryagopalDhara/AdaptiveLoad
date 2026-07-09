@@ -50,6 +50,21 @@
 		}
 	}
 
+	function buildAiProvider() {
+		if ( ! settings.aiEnabled ) return null;
+
+		return function ( context ) {
+			return fetch( settings.restUrl + '/ai-messages', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify( context )
+			} )
+				.then( function ( r ) { return r.json(); } )
+				.then( function ( data ) { return data && data.messages ? data.messages : []; } )
+				.catch( function () { return []; } );
+		};
+	}
+
 	function initLoader( siteTier ) {
 		var thresholds = settings.thresholds;
 
@@ -63,12 +78,22 @@
 			};
 		}
 
+		var aiProvider = buildAiProvider();
+
+		// Make the AI provider (if enabled) the default for every future
+		// AdaptiveLoad instance — including ones auto-created from
+		// data-adaptiveload elements on buttons/forms elsewhere on the page.
+		if ( typeof AdaptiveLoad.configureDefaults === 'function' && aiProvider ) {
+			AdaptiveLoad.configureDefaults( { aiMessageProvider: aiProvider } );
+		}
+
 		var loader = AdaptiveLoad( {
 			thresholds: thresholds,
 			staticMessages: settings.staticMessages,
 			dynamicMessages: settings.dynamicMessages,
 			networkAdjustMs: settings.networkAdjustMs,
-			enableLearning: true
+			enableLearning: true,
+			aiMessageProvider: aiProvider
 		} );
 
 		loader.start();
@@ -83,6 +108,12 @@
 		// Expose for theme/plugin devs who want manual control
 		// (e.g. AJAX-heavy pages, SPA-style WP themes, form submissions).
 		window.adaptiveLoadInstance = loader;
+
+		// Now that defaults (including any AI provider) are configured,
+		// scan the page for data-adaptiveload buttons/forms and bind them.
+		if ( typeof AdaptiveLoad.autoInit === 'function' ) {
+			AdaptiveLoad.autoInit();
+		}
 	}
 
 	// Ask the site-wide prediction endpoint whether this page is historically slow.
