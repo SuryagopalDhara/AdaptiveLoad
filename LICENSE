@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 AdaptiveLoader Contributors
+Copyright (c) 2026 AdaptiveLoad Contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,8 +22,8 @@ SOFTWARE.
 
 ---
 
-Note: the WordPress plugin in wordpress-plugin/adaptiveloader/ is separately
-licensed under GPLv2-or-later (see wordpress-plugin/adaptiveloader/LICENSE.txt),
+Note: the WordPress plugin in wordpress-plugin/adaptiveload/ is separately
+licensed under GPLv2-or-later (see wordpress-plugin/adaptiveload/LICENSE.txt),
 as required by the WordPress.org plugin repository. The core library
-(core/adaptiveloader.js) is MIT-licensed as stated above and may be used
+(core/adaptiveload.js) is MIT-licensed as stated above and may be used
 independently of WordPress under those terms.

@@ -1,16 +1,16 @@
 /*!
- * AdaptiveLoader WordPress init script.
- * Wires the standalone adaptiveloader.js library to admin-configured
+ * AdaptiveLoad WordPress init script.
+ * Wires the standalone adaptiveload.js library to admin-configured
  * settings, and reports timings back to the site-wide learning endpoint.
  */
 (function () {
 	'use strict';
 
-	if ( typeof AdaptiveLoader === 'undefined' || typeof AdaptiveLoaderSettings === 'undefined' ) {
+	if ( typeof AdaptiveLoad === 'undefined' || typeof AdaptiveLoadSettings === 'undefined' ) {
 		return;
 	}
 
-	var settings = AdaptiveLoaderSettings;
+	var settings = AdaptiveLoadSettings;
 
 	function detectDeviceType() {
 		return /Mobi|Android/i.test( navigator.userAgent ) ? 'mobile' : 'desktop';
@@ -63,7 +63,7 @@
 			};
 		}
 
-		var loader = AdaptiveLoader( {
+		var loader = AdaptiveLoad( {
 			thresholds: thresholds,
 			staticMessages: settings.staticMessages,
 			dynamicMessages: settings.dynamicMessages,
@@ -82,7 +82,7 @@
 
 		// Expose for theme/plugin devs who want manual control
 		// (e.g. AJAX-heavy pages, SPA-style WP themes, form submissions).
-		window.adaptiveLoaderInstance = loader;
+		window.adaptiveLoadInstance = loader;
 	}
 
 	// Ask the site-wide prediction endpoint whether this page is historically slow.

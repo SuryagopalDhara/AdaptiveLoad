@@ -7,7 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Admin settings page — lets non-developers configure everything
  * through a normal WordPress settings UI, no code required.
  */
-class AdaptiveLoader_Admin {
+class AdaptiveLoad_Admin {
 
 	public static function init() {
 		add_action( 'admin_menu', array( __CLASS__, 'add_menu' ) );
@@ -17,28 +17,28 @@ class AdaptiveLoader_Admin {
 
 	public static function add_menu() {
 		add_options_page(
-			'AdaptiveLoader Settings',
-			'AdaptiveLoader',
+			'AdaptiveLoad Settings',
+			'AdaptiveLoad',
 			'manage_options',
-			'adaptiveloader',
+			'adaptiveload',
 			array( __CLASS__, 'render_settings_page' )
 		);
 	}
 
 	public static function enqueue_admin_assets( $hook ) {
-		if ( 'settings_page_adaptiveloader' !== $hook ) {
+		if ( 'settings_page_adaptiveload' !== $hook ) {
 			return;
 		}
 		wp_enqueue_style(
-			'adaptiveloader-admin',
-			ADAPTIVELOADER_URL . 'assets/css/admin.css',
+			'adaptiveload-admin',
+			ADAPTIVELOAD_URL . 'assets/css/admin.css',
 			array(),
-			ADAPTIVELOADER_VERSION
+			ADAPTIVELOAD_VERSION
 		);
 	}
 
 	public static function register_settings() {
-		register_setting( 'adaptiveloader_settings_group', 'adaptiveloader_settings', array( __CLASS__, 'sanitize_settings' ) );
+		register_setting( 'adaptiveload_settings_group', 'adaptiveload_settings', array( __CLASS__, 'sanitize_settings' ) );
 	}
 
 	public static function sanitize_settings( $input ) {
@@ -83,9 +83,9 @@ class AdaptiveLoader_Admin {
 			return;
 		}
 
-		$settings = AdaptiveLoader_Frontend::get_settings();
-		$stats    = AdaptiveLoader_DB::get_all_page_stats( 20 );
+		$settings = AdaptiveLoad_Frontend::get_settings();
+		$stats    = AdaptiveLoad_DB::get_all_page_stats( 20 );
 
-		include ADAPTIVELOADER_PATH . 'admin/settings-page.php';
+		include ADAPTIVELOAD_PATH . 'admin/settings-page.php';
 	}
 }

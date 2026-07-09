@@ -10,11 +10,11 @@ if ( ! defined( 'ABSPATH' ) ) {
  * No personal data is stored — only: URL, load time (ms), device
  * type (mobile/desktop), and a coarse network tier (fast/medium/slow).
  */
-class AdaptiveLoader_DB {
+class AdaptiveLoad_DB {
 
 	public static function table_name() {
 		global $wpdb;
-		return $wpdb->prefix . 'adaptiveloader_timings';
+		return $wpdb->prefix . 'adaptiveload_timings';
 	}
 
 	public static function create_table() {
@@ -37,7 +37,7 @@ class AdaptiveLoader_DB {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
 
-		add_option( 'adaptiveloader_db_version', ADAPTIVELOADER_VERSION );
+		add_option( 'adaptiveload_db_version', ADAPTIVELOAD_VERSION );
 	}
 
 	/**

@@ -1,8 +1,8 @@
-.adaptiveloader-admin .title {
+.adaptiveload-admin .title {
 	margin-top: 28px;
 }
 
-.adaptiveloader-tier {
+.adaptiveload-tier {
 	display: inline-block;
 	padding: 2px 10px;
 	border-radius: 999px;
@@ -10,17 +10,17 @@
 	font-weight: 600;
 }
 
-.adaptiveloader-tier-fast {
+.adaptiveload-tier-fast {
 	background: #e6f6ea;
 	color: #1a7f37;
 }
 
-.adaptiveloader-tier-medium {
+.adaptiveload-tier-medium {
 	background: #fff4e5;
 	color: #b26a00;
 }
 
-.adaptiveloader-tier-slow {
+.adaptiveload-tier-slow {
 	background: #fdecea;
 	color: #c62828;
 }

@@ -4,14 +4,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * REST API surface for AdaptiveLoader.
+ * REST API surface for AdaptiveLoad.
  *
- * POST /wp-json/adaptiveloader/v1/record  -> log a page load timing
- * GET  /wp-json/adaptiveloader/v1/predict -> get predicted tier for a URL
+ * POST /wp-json/adaptiveload/v1/record  -> log a page load timing
+ * GET  /wp-json/adaptiveload/v1/predict -> get predicted tier for a URL
  */
-class AdaptiveLoader_REST {
+class AdaptiveLoad_REST {
 
-	const NAMESPACE_ = 'adaptiveloader/v1';
+	const NAMESPACE_ = 'adaptiveload/v1';
 
 	public static function init() {
 		add_action( 'rest_api_init', array( __CLASS__, 'register_routes' ) );
@@ -59,14 +59,14 @@ class AdaptiveLoader_REST {
 			return new WP_REST_Response( array( 'stored' => false, 'reason' => 'out_of_range' ), 200 );
 		}
 
-		AdaptiveLoader_DB::record_timing( $page_url, $load_time_ms, $device_type, $network_tier );
+		AdaptiveLoad_DB::record_timing( $page_url, $load_time_ms, $device_type, $network_tier );
 
 		return new WP_REST_Response( array( 'stored' => true ), 200 );
 	}
 
 	public static function handle_predict( WP_REST_Request $request ) {
 		$page_url = $request->get_param( 'page_url' );
-		$stats    = AdaptiveLoader_DB::get_page_average( $page_url );
+		$stats    = AdaptiveLoad_DB::get_page_average( $page_url );
 
 		if ( ! $stats || $stats['sample_count'] < 3 ) {
 			return new WP_REST_Response(

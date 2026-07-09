@@ -4,11 +4,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Loads the AdaptiveLoader JS library on the frontend and wires it up
+ * Loads the AdaptiveLoad JS library on the frontend and wires it up
  * with the site's configured thresholds, messages, and the site-wide
  * prediction endpoint.
  */
-class AdaptiveLoader_Frontend {
+class AdaptiveLoad_Frontend {
 
 	public static function init() {
 		add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_assets' ) );
@@ -26,26 +26,26 @@ class AdaptiveLoader_Frontend {
 		}
 
 		wp_enqueue_script(
-			'adaptiveloader',
-			ADAPTIVELOADER_URL . 'assets/js/adaptiveloader.js',
+			'adaptiveload',
+			ADAPTIVELOAD_URL . 'assets/js/adaptiveload.js',
 			array(),
-			ADAPTIVELOADER_VERSION,
+			ADAPTIVELOAD_VERSION,
 			true // load in footer, non-render-blocking
 		);
 
 		wp_enqueue_script(
-			'adaptiveloader-init',
-			ADAPTIVELOADER_URL . 'assets/js/init.js',
-			array( 'adaptiveloader' ),
-			ADAPTIVELOADER_VERSION,
+			'adaptiveload-init',
+			ADAPTIVELOAD_URL . 'assets/js/init.js',
+			array( 'adaptiveload' ),
+			ADAPTIVELOAD_VERSION,
 			true
 		);
 
 		wp_localize_script(
-			'adaptiveloader-init',
-			'AdaptiveLoaderSettings',
+			'adaptiveload-init',
+			'AdaptiveLoadSettings',
 			array(
-				'restUrl'         => esc_url_raw( rest_url( 'adaptiveloader/v1' ) ),
+				'restUrl'         => esc_url_raw( rest_url( 'adaptiveload/v1' ) ),
 				'pageUrl'         => esc_url_raw( self::current_url() ),
 				'thresholds'      => $settings['thresholds'],
 				'staticMessages'  => $settings['static_messages'],
@@ -57,7 +57,7 @@ class AdaptiveLoader_Frontend {
 	}
 
 	/**
-	 * Decide whether AdaptiveLoader should run on the current request,
+	 * Decide whether AdaptiveLoad should run on the current request,
 	 * based on admin-configured scope (all pages / specific post types / specific IDs).
 	 */
 	private static function should_run_on_current_page( $settings ) {
@@ -108,7 +108,7 @@ class AdaptiveLoader_Frontend {
 			'network_adjust_ms' => 500,
 		);
 
-		$saved = get_option( 'adaptiveloader_settings', array() );
+		$saved = get_option( 'adaptiveload_settings', array() );
 		return wp_parse_args( $saved, $defaults );
 	}
 }

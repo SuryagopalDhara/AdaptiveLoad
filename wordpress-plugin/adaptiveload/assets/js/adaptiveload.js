@@ -1,18 +1,18 @@
 /*!
- * AdaptiveLoader.js v1.0.0
+ * AdaptiveLoad.js v1.0.0
  * A smart, self-learning loading indicator library.
  * Free & open source — MIT License
  * By Suryagopal Dhara — https://suryacreates.com
- * https://github.com/SuryagopalDhara/AdaptiveLoader
+ * https://github.com/SuryagopalDhara/AdaptiveLoad
  *
  * No dependencies. Works standalone in any HTML/JS site,
- * or via the AdaptiveLoader WordPress plugin.
+ * or via the AdaptiveLoad WordPress plugin.
  */
 
 (function (global, factory) {
   typeof module === 'object' && module.exports
     ? (module.exports = factory())
-    : (global.AdaptiveLoader = factory());
+    : (global.AdaptiveLoad = factory());
 })(typeof window !== 'undefined' ? window : this, function () {
   'use strict';
 
@@ -36,7 +36,7 @@
     // Container / mount target. Defaults to a fixed overlay appended to body.
     target: null,
     // Storage key for session-based learning
-    storageKey: 'adaptiveloader_speed_tier',
+    storageKey: 'adaptiveload_speed_tier',
     // Called with (state) whenever the UI state changes: 'idle' | 'spinner' | 'static' | 'dynamic'
     onStateChange: null,
     // Custom render functions (optional overrides)
@@ -45,7 +45,7 @@
     renderDynamicText: null,
     // Enable local learning (records load times per-URL into localStorage)
     enableLearning: true,
-    learningStorageKey: 'adaptiveloader_page_stats'
+    learningStorageKey: 'adaptiveload_page_stats'
   };
 
   function now() {
@@ -140,29 +140,29 @@
   // ---- Default DOM rendering ----------------------------------------------
 
   function injectStylesOnce() {
-    if (document.getElementById('adaptiveloader-styles')) return;
+    if (document.getElementById('adaptiveload-styles')) return;
     var css = [
-      '.adaptiveloader-overlay{position:fixed;inset:0;display:flex;align-items:center;',
+      '.adaptiveload-overlay{position:fixed;inset:0;display:flex;align-items:center;',
       'justify-content:center;flex-direction:column;gap:12px;background:rgba(255,255,255,0.0);',
       'pointer-events:none;z-index:999999;}',
-      '.adaptiveloader-spinner{width:36px;height:36px;border-radius:50%;',
+      '.adaptiveload-spinner{width:36px;height:36px;border-radius:50%;',
       'border:3px solid rgba(0,0,0,0.15);border-top-color:rgba(0,0,0,0.65);',
-      'animation:adaptiveloader-spin 0.8s linear infinite;}',
-      '@keyframes adaptiveloader-spin{to{transform:rotate(360deg);}}',
-      '.adaptiveloader-text{font:500 14px/1.4 system-ui,-apple-system,sans-serif;',
+      'animation:adaptiveload-spin 0.8s linear infinite;}',
+      '@keyframes adaptiveload-spin{to{transform:rotate(360deg);}}',
+      '.adaptiveload-text{font:500 14px/1.4 system-ui,-apple-system,sans-serif;',
       'color:rgba(0,0,0,0.75);background:rgba(255,255,255,0.9);padding:6px 14px;',
       'border-radius:999px;box-shadow:0 1px 4px rgba(0,0,0,0.1);}',
-      '@media (prefers-reduced-motion: reduce){.adaptiveloader-spinner{animation-duration:2s;}}'
+      '@media (prefers-reduced-motion: reduce){.adaptiveload-spinner{animation-duration:2s;}}'
     ].join('');
     var style = document.createElement('style');
-    style.id = 'adaptiveloader-styles';
+    style.id = 'adaptiveload-styles';
     style.textContent = css;
     document.head.appendChild(style);
   }
 
   function createOverlay(target) {
     var el = document.createElement('div');
-    el.className = 'adaptiveloader-overlay';
+    el.className = 'adaptiveload-overlay';
     el.setAttribute('role', 'status');
     el.setAttribute('aria-live', 'polite');
     (target || document.body).appendChild(el);
@@ -171,7 +171,7 @@
 
   // ---- Main controller -----------------------------------------------------
 
-  function AdaptiveLoaderInstance(userOptions) {
+  function AdaptiveLoadInstance(userOptions) {
     var opts = deepMerge(JSON.parse(JSON.stringify(DEFAULTS)), userOptions || {});
     var startTime = null;
     var timers = [];
@@ -204,7 +204,7 @@
       if (opts.renderSpinner) {
         opts.renderSpinner(el);
       } else {
-        el.innerHTML = '<div class="adaptiveloader-spinner"></div>';
+        el.innerHTML = '<div class="adaptiveload-spinner"></div>';
       }
       setState('spinner');
     }
@@ -215,7 +215,7 @@
       if (opts.renderStaticText) {
         opts.renderStaticText(el, msg);
       } else {
-        el.innerHTML = '<div class="adaptiveloader-spinner"></div><div class="adaptiveloader-text">' +
+        el.innerHTML = '<div class="adaptiveload-spinner"></div><div class="adaptiveload-text">' +
           escapeHtml(msg) + '</div>';
       }
       setState('static');
@@ -231,7 +231,7 @@
         if (opts.renderDynamicText) {
           opts.renderDynamicText(el, msg);
         } else {
-          el.innerHTML = '<div class="adaptiveloader-spinner"></div><div class="adaptiveloader-text">' +
+          el.innerHTML = '<div class="adaptiveload-spinner"></div><div class="adaptiveload-text">' +
             escapeHtml(msg) + '</div>';
         }
         i++;
@@ -320,6 +320,6 @@
     };
   }
 
-  AdaptiveLoaderInstance.VERSION = '1.0.0';
-  return AdaptiveLoaderInstance;
+  AdaptiveLoadInstance.VERSION = '1.0.0';
+  return AdaptiveLoadInstance;
 });

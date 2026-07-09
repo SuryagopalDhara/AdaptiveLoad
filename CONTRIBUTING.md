@@ -1,4 +1,4 @@
-# Contributing to AdaptiveLoader
+# Contributing to AdaptiveLoad
 
 Thanks for considering contributing — this project is community-driven and welcomes issues, PRs, and ideas from developers of any experience level.
 
@@ -12,23 +12,23 @@ Thanks for considering contributing — this project is community-driven and wel
 ## Development setup
 
 ```bash
-git clone https://github.com/adaptiveloader/adaptiveloader.git
-cd adaptiveloader
+git clone https://github.com/SuryagopalDhara/adaptiveload.git
+cd adaptiveload
 ```
 
-No build step is required for the core library — it's plain vanilla JS. For the WordPress plugin, use a local WordPress environment (e.g. [LocalWP](https://localwp.com/)) and symlink or copy `wordpress-plugin/adaptiveloader` into `wp-content/plugins/`.
+No build step is required for the core library — it's plain vanilla JS. For the WordPress plugin, use a local WordPress environment (e.g. [LocalWP](https://localwp.com/)) and symlink or copy `wordpress-plugin/adaptiveload` into `wp-content/plugins/`.
 
 ## Pull request workflow
 
 1. Fork the repo and create a branch from `main`: `git checkout -b fix/short-description`
-2. Make your changes. Keep the core library dependency-free — no adding npm packages to `core/adaptiveloader.js`.
+2. Make your changes. Keep the core library dependency-free — no adding npm packages to `core/adaptiveload.js`.
 3. Test manually in at least one browser (Chrome/Firefox) and, if touching WP code, a local WordPress install.
 4. Commit with a clear message (e.g. `Fix: spinner not clearing on SPA route change`).
 5. Push and open a PR against `main`, describing what changed and why.
 
 ## Code style
 
-- **JS**: match the existing style in `core/adaptiveloader.js` (no semicolons omitted, 2-space indent, ES5-compatible syntax so it works without a build step).
+- **JS**: match the existing style in `core/adaptiveload.js` (no semicolons omitted, 2-space indent, ES5-compatible syntax so it works without a build step).
 - **PHP**: follow [WordPress PHP Coding Standards](https://developer.wordpress.org/coding-standards/wordpress-coding-standards/php/).
 - Keep the core library dependency-free. This is a hard rule — it's what makes it usable on any site regardless of tech stack.
 

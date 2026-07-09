@@ -1,4 +1,4 @@
-=== AdaptiveLoader ===
+=== AdaptiveLoad ===
 Contributors: suryagopaldhara
 Tags: loading, spinner, preloader, performance, ux
 Requires at least: 5.6
@@ -9,14 +9,14 @@ License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Author: Suryagopal Dhara
 Author URI: https://suryacreates.com
-Plugin URI: https://suryacreates.com/adaptiveloader/
-GitHub: https://github.com/SuryagopalDhara/AdaptiveLoader
+Plugin URI: https://suryacreates.com/adaptiveload/
+GitHub: https://github.com/SuryagopalDhara/AdaptiveLoad
 
 A smart, self-learning loading indicator. Shows nothing for fast loads, a spinner for medium waits, and contextual messages for slow ones.
 
 == Description ==
 
-Most loading indicators are dumb: either always-on or always-off. **AdaptiveLoader** is different — it adapts to how long a page *actually* takes to load, both from historical site-wide data and from each visitor's own connection speed.
+Most loading indicators are dumb: either always-on or always-off. **AdaptiveLoad** is different — it adapts to how long a page *actually* takes to load, both from historical site-wide data and from each visitor's own connection speed.
 
 **How it works:**
 
@@ -27,21 +27,21 @@ Most loading indicators are dumb: either always-on or always-off. **AdaptiveLoad
 
 **The smart part:**
 
-* AdaptiveLoader records real load times for every page (anonymized — no personal data), and learns which pages are typically fast or slow.
+* AdaptiveLoad records real load times for every page (anonymized — no personal data), and learns which pages are typically fast or slow.
 * It also detects each visitor's network speed (via the Network Information API where supported, with a graceful fallback for browsers that don't support it) and adjusts the thresholds so slower-connection visitors see helpful feedback sooner.
 * Returning visitors to a known-slow page skip straight to the more informative states instead of waiting through the full ladder.
 
 **Built for everyone:**
 
-* No coding required — configure everything from Settings → AdaptiveLoader.
-* Also ships as a standalone, dependency-free JavaScript library (`adaptiveloader.js`) that works on any website, not just WordPress.
+* No coding required — configure everything from Settings → AdaptiveLoad.
+* Also ships as a standalone, dependency-free JavaScript library (`adaptiveload.js`) that works on any website, not just WordPress.
 * 100% free and open source (GPLv2).
 
 == Installation ==
 
-1. Upload the `adaptiveloader` folder to `/wp-content/plugins/`, or install directly through the WordPress plugin screen.
+1. Upload the `adaptiveload` folder to `/wp-content/plugins/`, or install directly through the WordPress plugin screen.
 2. Activate the plugin through the 'Plugins' menu in WordPress.
-3. Go to Settings → AdaptiveLoader to configure thresholds and messages (sensible defaults are provided out of the box).
+3. Go to Settings → AdaptiveLoad to configure thresholds and messages (sensible defaults are provided out of the box).
 
 == Frequently Asked Questions ==
 
@@ -55,7 +55,7 @@ No. Only anonymized page URL, load duration, device type (mobile/desktop), and a
 
 = Can I use this outside WordPress? =
 
-Yes. The core `adaptiveloader.js` library has zero dependencies and works in any HTML/JS project. See the project's GitHub repository.
+Yes. The core `adaptiveload.js` library has zero dependencies and works in any HTML/JS project. See the project's GitHub repository.
 
 = Can I customize the messages per page (e.g. checkout vs. search)? =
 
